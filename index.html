@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<title>tesla.live</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body,html{margin:0;background:#000}</style>
+</head><body>
+<video id="v" autoplay playsinline></video>
+<script>
+// 1. Benzersiz oda oluştur (Tesla ile telefon aynı linki açacak)
+const room = location.search.substring(1) || Math.random().toString(36).substr(2,9);
+if(!location.search) location.replace("??"+room);
+
+// 2. Signaling server (ücretsiz, açık kaynak)
+const signaling = new WebSocket('wss://signaling.fly.dev');
+
+const pc = new RTCPeerConnection({
+  iceServers: [
+    {urls: 'stun:stun.l.google.com:19302'},
+    {urls: 'stun:stun1.l.google.com:19302'},
+    // gerekirse TURN: {urls:'turn:turn.cloudflare.com:3478', username:'...', credential:'...'}
+  ]
+});
+
+signaling.onmessage = async msg => {
+  const data = JSON.parse(msg.data);
+  if(data.sdp) await pc.setRemoteDescription(data.sdp);
+  if(data.ice) await pc.addIceCandidate(data.ice);
+};
+
+pc.onicecandidate = e => e.candidate && signaling.send(JSON.stringify({ice:e.candidate, room}));
+pc.ontrack = e => document.getElementById('v').srcObject = e.streams[0];
+
+// Telefon mu Tesla mı?
+if(navigator.mediaDevices?.getDisplayMedia){
+  // TELEFON tarafı – ekran + ses paylaş
+  const stream = await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});
+  stream.getTracks().forEach(t=>pc.addTrack(t,stream));
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  signaling.send(JSON.stringify({sdp:offer, room}));
+  alert("Tesla aynı linki açsın → tesla.live?"+room);
+} else {
+  // TESLA tarafı – sadece izle
+  pc.createOffer().then(o=>pc.setLocalDescription(o));
+  document.getElementById('v').addEventListener('click', e=>{
+    const rect = e.target.getBoundingClientRect();
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    signaling.send(JSON.stringify({tap:{x,y}, room}));
+  });
+}
+
+// Dokunmatik kontrol (Tesla → Telefon)
+signaling.onmessage = msg => {
+  const data = JSON.parse(msg.data);
+  if(data.tap && navigator?.virtualKeyboard){
+    // Android Chrome’da dokunma gönder
+    const down = new TouchEvent('touchstart', {touches:[new Touch({identifier:1,target:document.body,clientX:data.tap.x,clientY:data.tap.y})]});
+    const up = new TouchEvent('touchend', {touches:[]});
+    document.dispatchEvent(down);
+    setTimeout(()=>document.dispatchEvent(up),50);
+  }
+};
+</script>
+</body></html>

@@ -1,119 +1,45 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8">
-<title>Tesla Cast - Ekran Yansıtma</title>
+<html><head><meta charset="utf-8"><title>Tesla TV – D Modunda Çalışır</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body,html{margin:0;padding:0;background:#000;overflow:hidden;font-family:Arial} #v{width:100vw;height:100vh;object-fit:contain;display:block} #status{color:#fff;position:fixed;top:10px;left:10px;z-index:10;background:rgba(0,0,0,0.5);padding:10px;border-radius:5px;font-size:16px}</style>
-</head><body>
-<video id="v" autoplay playsinline muted controls style="display:none"></video>
-<div id="status">Bağlantı başlatılıyor... (Chrome'da izin verince görüntü gelir)</div>
+<style>body,html{margin:0;padding:0;background:#000;overflow:hidden}
+iframe{width:100vw;height:100vh;border:none;display:none}
+#grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;padding:12px}
+.card{background:#111;border-radius:12px;overflow:hidden;cursor:pointer}
+.card img{width:100%;height:160px;object-fit:cover}
+.card div{padding:10px;text-align:center;background:#0a0;font-size:17px}
+</style></head><body>
+
+<div id="grid">
+  <div class="card" data-url="https://www.kanald.com.tr/canli-yayin"><img src="https://i.imgur.com/0z1k2mL.png"><div>Kanal D</div></div>
+  <div class="card" data-url="https://www.atv.com.tr/canli-yayin"><img src="https://i.imgur.com/8Y3x9pQ.png"><div>ATV</div></div>
+  <div class="card" data-url="https://www.startv.com.tr/canli-yayin"><img src="https://i.imgur.com/Z5vX7rT.png"><div>Star TV</div></div>
+  <div class="card" data-url="https://www.fox.com.tr/canli-yayin"><img src="https://i.imgur.com/3fGh7jK.png"><div>FOX</div></div>
+  <div class="card" data-url="https://www.trt1.com.tr/canli"><img src="https://i.imgur.com/5tR9xLm.png"><div>TRT 1</div></div>
+  <div class="card" data-url="https://www.youtube.com/tv"><img src="https://i.imgur.com/1v8kLmN.png"><div>YouTube</div></div>
+  <div class="card" data-url="https://www.blutv.com/canli-tv"><img src="https://i.imgur.com/5pLm9xR.png"><div>BluTV</div></div>
+</div>
+
+<iframe id="player" allow="autoplay; fullscreen; accelerometer; gyroscope; picture-in-picture"></iframe>
 
 <script>
-// Oda ID'si
-let room = new URLSearchParams(window.location.search).get('room') || Math.random().toString(36).substr(2,9);
-if (!new URLSearchParams(window.location.search).has('room')) {
-  window.location.search = '?room=' + room;
+// D modunda oynatmak için özel trick
+function playInDrivingMode(src) {
+  const iframe = document.getElementById('player');
+  iframe.src = src;
+  iframe.style.display = 'block';
+  document.getElementById('grid').style.display = 'none';
+
+  iframe.onload = () => {
+    setInterval(() => {
+      iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+    }, 3000); // Sürekli play komutu gönder
+  };
+
+  document.documentElement.requestFullscreen();
 }
 
-const statusEl = document.getElementById('status');
-statusEl.textContent = 'HTTPS kontrol ediliyor...';
-
-// HTTPS zorunlu
-if (location.protocol !== 'https:') {
-  statusEl.textContent = 'HTTPS gerekli! Linki https ile açın.';
-  throw new Error('HTTPS required');
-}
-
-// Signaling (daha stabil server)
-const signalingUrl = 'wss://signaling.fly.dev/?room=' + room;
-const signaling = new WebSocket(signalingUrl);
-
-signaling.onopen = () => {
-  statusEl.textContent = 'Sunucuya bağlandı! Ekran paylaş izni verin... (Aşağıya dokun)';
-  // İzin tetikle (manuel buton ekle)
-  const btn = document.createElement('button');
-  btn.textContent = 'Ekran Paylaş Başlat';
-  btn.style.position = 'fixed'; btn.style.top = '60px'; btn.style.left = '10px'; btn.style.zIndex = '11'; btn.style.padding = '10px'; btn.style.background = '#4CAF50'; btn.style.color = 'white'; btn.style.border = 'none'; btn.style.borderRadius = '5px';
-  document.body.appendChild(btn);
-  btn.onclick = startScreenShare;
-};
-
-signaling.onerror = () => statusEl.textContent = 'Sunucu hatası – https://tesla-cast.vercel.app dene.';
-
-const pc = new RTCPeerConnection({
-  iceServers: [{urls: 'stun:stun.l.google.com:19302'}, {urls: 'stun:stun1.l.google.com:19302'}]
+document.querySelectorAll('.card').forEach(card => {
+  card.onclick = () => playInDrivingMode(card.dataset.url);
 });
-
-pc.ontrack = (e) => {
-  const video = document.getElementById('v');
-  video.srcObject = e.streams[0];
-  video.play();
-  video.style.display = 'block';
-  document.querySelector('button').remove();
-  statusEl.style.display = 'none';
-  video.requestFullscreen().catch(() => {});
-};
-
-pc.onicecandidate = (e) => e.candidate && signaling.send(JSON.stringify({ice: e.candidate}));
-
-signaling.onmessage = async (msg) => {
-  try {
-    const data = JSON.parse(msg.data);
-    if (data.sdp) await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-    if (data.ice) await pc.addIceCandidate(new RTCIceCandidate(data.ice));
-    if (data.tap) handleTap(data.tap);
-  } catch (e) { statusEl.textContent = 'Mesaj hatası: ' + e.message; }
-};
-
-async function startScreenShare() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-    statusEl.textContent = 'Bu tarayıcı desteklemiyor (Chrome kullanın).';
-    return;
-  }
-  try {
-    statusEl.textContent = 'İzin bekleniyor...';
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: {frameRate: {ideal: 30}, width: {ideal: 1280}, height: {ideal: 720}},
-      audio: true
-    });
-    stream.getTracks().forEach(track => pc.addTrack(track, stream));
-    const offer = await pc.createOffer({offerToReceiveAudio: 1, offerToReceiveVideo: 1});
-    await pc.setLocalDescription(offer);
-    signaling.send(JSON.stringify({sdp: offer, type: 'offer'}));
-    const fullLink = window.location.origin + window.location.pathname + '?room=' + room;
-    statusEl.innerHTML = `Başarılı! Tesla linki: <a href="${fullLink}" style="color:#4CAF50">${fullLink}</a><br>Kopyala ve Tesla'ya yapıştır!`;
-  } catch (err) {
-    statusEl.textContent = 'İzin hatası: ' + err.message + ' (Chrome ayarlarında site izinlerini kontrol et)';
-    console.error(err); // Konsola yaz
-  }
-}
-
-// Dokunmatik (izleyen taraf)
-if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-  statusEl.textContent = `Oda: ${room} - Görüntü bekleniyor... Ekran paylaş butonu yok, izleme modundasın.`;
-  const video = document.getElementById('v');
-  function sendTap(e) {
-    e.preventDefault();
-    const rect = video.getBoundingClientRect();
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
-    const x = (clientX - rect.left) * (video.videoWidth / rect.width || 1);
-    const y = (clientY - rect.top) * (video.videoHeight / rect.height || 1);
-    signaling.send(JSON.stringify({tap: {x, y}}));
-  }
-  video.addEventListener('click', sendTap);
-  video.addEventListener('touchstart', sendTap, {passive: false});
-}
-
-// Dokunmatik al
-function handleTap(tap) {
-  const video = document.getElementById('v');
-  if (!video.srcObject) return;
-  const rect = video.getBoundingClientRect();
-  const scaleX = rect.width / video.videoWidth;
-  const scaleY = rect.height / video.videoHeight;
-  const touchStart = new MouseEvent('mousedown', {clientX: tap.x * scaleX + rect.left, clientY: tap.y * scaleY + rect.top});
-  document.dispatchEvent(touchStart);
-  setTimeout(() => document.dispatchEvent(new MouseEvent('mouseup', {clientX: tap.x * scaleX + rect.left, clientY: tap.y * scaleY + rect.top})), 50);
-}
 </script>
 </body></html>

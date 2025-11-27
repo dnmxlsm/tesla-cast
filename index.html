@@ -2,70 +2,72 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<title>Tesla TV – D Modu Full Çalışır (YouTube + Türk Kanalları)</title>
+<title>Tesla TV – D Modu Native YouTube + Kanallar</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  body,html{margin:0;padding:0;background:#000;color:#fff;font-family:Arial;overflow:hidden;height:100vh}
-  #grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;padding:12px;overflow-y:auto;height:100vh}
-  .card{background:#111;border-radius:15px;overflow:hidden;cursor:pointer;box-shadow:0 4px 20px rgba(0,255,0,0.3);transition:0.3s}
-  .card:hover{transform:scale(1.06);box-shadow:0 8px 40px rgba(0,255,0,0.6)}
+  body,html{margin:0;padding:0;background:#000;color:#fff;font-family:sans-serif;overflow:hidden;height:100vh}
+  #grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px;padding:15px;overflow-y:auto;height:100vh}
+  .card{background:#111;border-radius:16px;overflow:hidden;cursor:pointer;transition:0.3s;box-shadow:0 4px 20px rgba(0,255,0,0.3)}
+  .card:hover{transform:scale(1.07);box-shadow:0 10px 40px rgba(0,255,0,0.6)}
   .card img{width:100%;height:170px;object-fit:cover}
   .title{padding:12px;text-align:center;font-weight:bold;font-size:19px;background:#0a0}
   iframe{width:100vw;height:100vh;position:fixed;top:0;left:0;border:none;display:none;z-index:999}
-  #back{position:fixed;top:15px;left:15px;z-index:1000;background:#0f0;color:#000;padding:12px 20px;border-radius:8px;display:none;font-weight:bold;cursor:pointer;box-shadow:0 0 20px #0f0}
-  #tip{position:fixed;bottom:15px;left:15px;z-index:1000;background:rgba(255,255,0,0.9);color:#000;padding:10px 15px;border-radius:8px;display:none;font-size:14px}
+  #back,#tip{position:fixed;z-index:1001;padding:12px 20px;border-radius:10px;display:none;cursor:pointer}
+  #back{top:15px;left:15px;background:#0f0;color:#000;font-weight:bold;box-shadow:0 0 20px #0f0}
+  #tip{bottom:15px;left:15px;background:#ff0;color:#000;font-size:15px}
 </style>
 </head>
 <body>
 
 <div id="grid">
-  <!-- TÜRK KANALLARI (D modunda %95+ çalışıyor) -->
-  <div class="card" data-src="https://www.kanald.com.tr/embed/canli-yayin"><img src="https://i.imgur.com/0z8K8pM.png"><div class="title">Kanal D Canlı</div></div>
-  <div class="card" data-src="https://webtv.atv.com.tr/webtv/videoizle/atv/canli_yayin"><img src="https://i.imgur.com/2f3kLmN.png"><div class="title">ATV Canlı</div></div>
-  <div class="card" data-src="https://www.startv.com.tr/canli-yayin"><img src="https://i.imgur.com/9kLmN2x.png"><div class="title">Star TV Canlı</div></div>
-  <div class="card" data-src="https://www.fox.com.tr/canli-yayin"><img src="https://i.imgur.com/X7vP9kL.png"><div class="title">FOX TV Canlı</div></div>
-  <div class="card" data-src="https://www.showtv.com.tr/canli-yayin"><img src="https://i.imgur.com/3dRt5pQ.png"><div class="title">Show TV Canlı</div></div>
-  <div class="card" data-src="https://www.tv8.com.tr/canli-yayin"><img src="https://i.imgur.com/Z5xK9vB.png"><div class="title">TV8 Canlı</div></div>
-  <div class="card" data-src="https://www.trt1.com.tr/canli"><img src="https://i.imgur.com/8pQ2mN5.png"><div class="title">TRT 1 Canlı</div></div>
-  <div class="card" data-src="https://www.trtspor.com.tr/canli"><img src="https://i.imgur.com/kLmN9xP.png"><div class="title">TRT Spor Canlı</div></div>
-  <div class="card" data-src="https://www.ahaber.com.tr/canli-yayin"><img src="https://i.imgur.com/7vB9kLm.png"><div class="title">A Haber Canlı</div></div>
-
-  <!-- YOUTUBE – D MODUNDA ÇALIŞAN TEK YOL (2025) -->
-  <div class="card" data-src="https://www.youtube.com/tv"><img src="https://i.imgur.com/Yx9vP7kL.png"><div class="title">YouTube TV (D'de Çalışır!)</div></div>
+  <div class="card" onclick="nativeYouTube()"><img src="https://i.ibb.co/Yx9vP7kL/youtube.jpg"><div class="title">YouTube Native (D'de Aç!)</div></div>
+  <div class="card" data-src="https://www.kanald.com.tr/embed/canli-yayin"><img src="https://i.ibb.co/0jKk9Yt/kanald.jpg"><div class="title">Kanal D</div></div>
+  <div class="card" data-src="https://webtv.atv.com.tr/webtv/videoizle/atv/canli_yayin"><img src="https://i.ibb.co/4pQ5n7Q/atv.jpg"><div class="title">ATV</div></div>
+  <div class="card" data-src="https://www.startv.com.tr/canli-yayin"><img src="https://i.ibb.co/9hR5n7Q/star.jpg"><div class="title">Star TV</div></div>
+  <div class="card" data-src="https://www.fox.com.tr/canli-yayin"><img src="https://i.ibb.co/3dRt5pQ/fox.jpg"><div class="title">FOX</div></div>
+  <div class="card" data-src="https://www.showtv.com.tr/canli-yayin"><img src="https://i.ibb.co/Z5xK9vB/show.jpg"><div class="title">Show TV</div></div>
+  <div class="card" data-src="https://www.tv8.com.tr/canli-yayin"><img src="https://i.ibb.co/7vB9kLm/tv8.jpg"><div class="title">TV8</div></div>
+  <div class="card" data-src="https://www.trt1.com.tr/canli"><img src="https://i.ibb.co/8pQ2mN5/trt1.jpg"><div class="title">TRT 1</div></div>
+  <div class="card" data-src="https://www.trtspor.com.tr/canli"><img src="https://i.ibb.co/kLmN9xP/trtspor.jpg"><div class="title">TRT Spor</div></div>
 </div>
 
 <iframe id="player" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation"></iframe>
 <button id="back" onclick="geri()">← GERİ</button>
-<div id="tip">D modunda YouTube için: YouTube TV seç → İstediğin kanalı/videoyu ara → Tam ekran yap!</div>
+<div id="tip">YouTube için: Entertainment > Theater > YouTube aç → D modunda videoyu oyna!</div>
 
 <script>
-function load(src) {
-  document.getElementById('player').src = src + '?autoplay=1&mute=0';
-  document.getElementById('player').style.display = 'block';
-  document.getElementById('grid').style.display = 'none';
-  document.getElementById('back').style.display = 'block';
-  document.getElementById('tip').style.display = src.includes('youtube.com/tv') ? 'block' : 'none';
+const player = document.getElementById('player');
+const back = document.getElementById('back');
+const tip = document.getElementById('tip');
 
-  // Tesla D modu fren/duraklama engeli için sürekli play
-  setInterval(() => {
-    const ifr = document.getElementById('player');
-    if (ifr.contentWindow) {
-      ifr.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-    }
-  }, 3000);
-
-  // 1 saniye sonra tam ekran zorla
-  setTimeout(() => document.documentElement.requestFullscreen?.(), 1200);
+function nativeYouTube() {
+  alert('YouTube için: Entertainment menüsüne git > Theater > YouTube aç > Login ol > D modunda izle!');
+  tip.style.display = 'block';
 }
 
-document.querySelectorAll('.card').forEach(c => c.onclick = () => load(c.dataset.src));
+document.querySelectorAll('.card:not([onclick])').forEach(card => {
+  card.onclick = () => {
+    const src = card.dataset.src;
+    player.src = src + (src.includes('?') ? '&' : '?') + 'autoplay=1&playsinline=1&mute=0';
+    document.getElementById('grid').style.display = 'none';
+    player.style.display = 'block';
+    back.style.display = 'block';
+    tip.style.display = 'none';
+
+    setInterval(() => {
+      try { player.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); } catch(e) {}
+    }, 2500);
+
+    setTimeout(() => document.documentElement.requestFullscreen?.(), 1500);
+  };
+});
 
 function geri() {
-  document.getElementById('player').src = '';
-  document.getElementById('player').style.display = 'none';
+  player.src = '';
+  player.style.display = 'none';
   document.getElementById('grid').style.display = 'grid';
-  document.getElementById('back').style.display = 'none';
-  document.getElementById('tip').style.display = 'none';
+  back.style.display = 'none';
+  tip.style.display = 'none';
   document.exitFullscreen?.();
 }
 </script>

@@ -1,65 +1,107 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<title>tesla.live</title>
+<title>Tesla Cast - Ekran Yansıtma</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body,html{margin:0;background:#000}</style>
+<style>body,html{margin:0;padding:0;background:#000;overflow:hidden;font-family:Arial} #v{width:100vw;height:100vh;object-fit:contain;display:block} #status{color:#fff;position:fixed;top:10px;left:10px;z-index:10;background:rgba(0,0,0,0.5);padding:10px;border-radius:5px}</style>
 </head><body>
-<video id="v" autoplay playsinline></video>
-<script>
-// 1. Benzersiz oda oluştur (Tesla ile telefon aynı linki açacak)
-const room = location.search.substring(1) || Math.random().toString(36).substr(2,9);
-if(!location.search) location.replace("??"+room);
+<video id="v" autoplay playsinline muted controls style="display:none"></video>
+<div id="status">Bağlantı başlatılıyor... (Siyah ekran normal, izin verince görüntü gelir)</div>
 
-// 2. Signaling server (ücretsiz, açık kaynak)
-const signaling = new WebSocket('wss://signaling.fly.dev');
+<script>
+// Oda ID'si (URL'den al veya oluştur)
+let room = new URLSearchParams(window.location.search).get('room') || Math.random().toString(36).substr(2,9);
+if (!new URLSearchParams(window.location.search).has('room')) {
+  window.location.search = '?room=' + room;
+}
+
+// Ücretsiz signaling (Fly.io proxy – limitsiz)
+const signaling = new WebSocket('wss://signaling.fly.dev/?room=' + room);
+const statusEl = document.getElementById('status');
+
+signaling.onopen = () => statusEl.textContent = 'Sunucuya bağlandı! Ekran paylaş izni ver...';
+signaling.onerror = () => statusEl.textContent = 'Bağlantı hatası – VPN kapat veya başka tarayıcı dene.';
 
 const pc = new RTCPeerConnection({
   iceServers: [
     {urls: 'stun:stun.l.google.com:19302'},
-    {urls: 'stun:stun1.l.google.com:19302'},
-    // gerekirse TURN: {urls:'turn:turn.cloudflare.com:3478', username:'...', credential:'...'}
+    {urls: 'stun:stun1.l.google.com:19302'}
   ]
 });
 
-signaling.onmessage = async msg => {
-  const data = JSON.parse(msg.data);
-  if(data.sdp) await pc.setRemoteDescription(data.sdp);
-  if(data.ice) await pc.addIceCandidate(data.ice);
+// Mesaj al
+signaling.onmessage = async (msg) => {
+  try {
+    const data = JSON.parse(msg.data);
+    if (data.sdp) await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+    if (data.ice) await pc.addIceCandidate(new RTCIceCandidate(data.ice));
+    if (data.tap) handleTap(data.tap);
+  } catch (e) { statusEl.textContent = 'Hata: ' + e.message; }
 };
 
-pc.onicecandidate = e => e.candidate && signaling.send(JSON.stringify({ice:e.candidate, room}));
-pc.ontrack = e => document.getElementById('v').srcObject = e.streams[0];
+// Video geldiğinde
+pc.ontrack = (e) => {
+  const video = document.getElementById('v');
+  video.srcObject = e.streams[0];
+  video.play();
+  video.style.display = 'block';
+  statusEl.style.display = 'none';
+  video.requestFullscreen().catch(() => {}); // Tam ekran dene
+};
 
-// Telefon mu Tesla mı?
-if(navigator.mediaDevices?.getDisplayMedia){
-  // TELEFON tarafı – ekran + ses paylaş
-  const stream = await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});
-  stream.getTracks().forEach(t=>pc.addTrack(t,stream));
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  signaling.send(JSON.stringify({sdp:offer, room}));
-  alert("Tesla aynı linki açsın → tesla.live?"+room);
+// ICE paylaş
+pc.onicecandidate = (e) => e.candidate && signaling.send(JSON.stringify({ice: e.candidate}));
+
+// Telefon/Bilgisayar mı? (Ekran paylaş destekli mi?)
+if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+  // PAYLAŞAN TARAF
+  statusEl.textContent = 'Ekran paylaş izni verin...';
+  navigator.mediaDevices.getDisplayMedia({video: {frameRate: {ideal: 30}, width: {ideal: 1280}, height: {ideal: 720}}, audio: true})
+    .then((stream) => {
+      stream.getTracks().forEach(track => pc.addTrack(track, stream));
+      return pc.createOffer({offerToReceiveAudio: 1, offerToReceiveVideo: 1});
+    })
+    .then(offer => {
+      pc.setLocalDescription(offer);
+      signaling.send(JSON.stringify({sdp: offer, type: 'offer'}));
+    })
+    .then(() => {
+      const fullLink = window.location.origin + window.location.pathname + '?room=' + room;
+      statusEl.innerHTML = `Tesla linki: <a href="${fullLink}" style="color:#4CAF50">${fullLink}</a><br>Kopyala ve Tesla'ya yapıştır!`;
+    })
+    .catch(err => statusEl.textContent = 'İzin reddedildi: ' + err.message + ' (Chrome kullanın)');
 } else {
-  // TESLA tarafı – sadece izle
-  pc.createOffer().then(o=>pc.setLocalDescription(o));
-  document.getElementById('v').addEventListener('click', e=>{
-    const rect = e.target.getBoundingClientRect();
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
-    const y = e.touches ? e.touches[0].clientY : e.clientY;
-    signaling.send(JSON.stringify({tap:{x,y}, room}));
-  });
+  // İZLEYEN TARAF (Tesla)
+  statusEl.textContent = `Oda: ${room} - Görüntü bekleniyor...`;
+  pc.onaddstream = (e) => { /* fallback */ };
+  // Dokunmatik gönder
+  const video = document.getElementById('v');
+  function sendTap(e) {
+    e.preventDefault();
+    const rect = video.getBoundingClientRect();
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+    const x = (clientX - rect.left) * (video.videoWidth / rect.width);
+    const y = (clientY - rect.top) * (video.videoHeight / rect.height);
+    signaling.send(JSON.stringify({tap: {x, y}}));
+  }
+  video.addEventListener('click', sendTap);
+  video.addEventListener('touchstart', sendTap, {passive: false});
 }
 
-// Dokunmatik kontrol (Tesla → Telefon)
-signaling.onmessage = msg => {
-  const data = JSON.parse(msg.data);
-  if(data.tap && navigator?.virtualKeyboard){
-    // Android Chrome’da dokunma gönder
-    const down = new TouchEvent('touchstart', {touches:[new Touch({identifier:1,target:document.body,clientX:data.tap.x,clientY:data.tap.y})]});
-    const up = new TouchEvent('touchend', {touches:[]});
-    document.dispatchEvent(down);
-    setTimeout(()=>document.dispatchEvent(up),50);
-  }
-};
+// Dokunmatik al (paylaşan taraf)
+function handleTap(tap) {
+  const video = document.getElementById('v');
+  if (!video.srcObject) return;
+  const rect = video.getBoundingClientRect();
+  const scaleX = rect.width / video.videoWidth;
+  const scaleY = rect.height / video.videoHeight;
+  // Synthetic touch (basit)
+  const touchStart = new MouseEvent('mousedown', {clientX: tap.x * scaleX + rect.left, clientY: tap.y * scaleY + rect.top});
+  document.dispatchEvent(touchStart);
+  setTimeout(() => {
+    const touchEnd = new MouseEvent('mouseup', {clientX: tap.x * scaleX + rect.left, clientY: tap.y * scaleY + rect.top});
+    document.dispatchEvent(touchEnd);
+  }, 50);
+}
 </script>
 </body></html>

@@ -2,12 +2,12 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<title>Tesla TV – Türk Kanalları (Kendi Sitelerinden Logolar)</title>
+<title>Tesla TV – Güncel Türk Kanalları (2025 Logolar)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   body,html{margin:0;padding:0;background:#000;color:#fff;font-family:sans-serif;overflow:hidden;height:100vh}
   #grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;padding:16px;overflow-y:auto;height:100vh}
-  .card{background:#111;border-radius:18px;overflow:hidden;cursor:pointer;transition:.3s;box-shadow:0 5px 25px rgba(0,255,0,.4);transition:.3s}
+  .card{background:#111;border-radius:18px;overflow:hidden;cursor:pointer;transition:.3s;box-shadow:0 5px 25px rgba(0,255,0,.4)}
   .card:hover{transform:scale(1.08);box-shadow:0 12px 50px rgba(0,255,0,.7)}
   .card img{width:100%;height:175px;object-fit:contain;background:#000}
   .title{padding:14px;text-align:center;font-weight:bold;font-size:20px;background:#0a0}
@@ -19,49 +19,49 @@
 
 <div id="grid">
 
-  <!-- HEPSİ KENDİ RESMİ SİTESİNDEN ALINDI – 2025 AKTİF -->
+  <!-- GÜNCEL LOGOLAR – WIKIPEDIA KATEGORİSİ + RESMİ SİTELER (2025) -->
   <div class="card" data-src="https://www.kanald.com.tr/embed/canli-yayin">
-    <img src="https://www.kanald.com.tr/assets/public/images/logo/kanal-d-logo.svg" alt="Kanal D">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Kanal_D_Logo_2019.svg/512px-Kanal_D_Logo_2019.svg.png" alt="Kanal D">
     <div class="title">Kanal D HD</div>
   </div>
 
   <div class="card" data-src="https://webtv.atv.com.tr/webtv/videoizle/atv/canli_yayin">
-    <img src="https://iatv.tmgrup.com.tr/site/v2/i/atv-logo.png" alt="ATV">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/ATV_logo_2016.svg/512px-ATV_logo_2016.svg.png" alt="ATV">
     <div class="title">ATV HD</div>
   </div>
 
   <div class="card" data-src="https://www.startv.com.tr/canli-yayin">
-    <img src="https://www.startv.com.tr/assets/images/star-tv-logo.svg" alt="Star TV">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Star_TV_logo_2016.svg/512px-Star_TV_logo_2016.svg.png" alt="Star TV">
     <div class="title">Star TV HD</div>
   </div>
 
   <div class="card" data-src="https://www.nowtv.com.tr/canli-yayin">
-    <img src="https://www.nowtv.com.tr/assets/images/now-logo.svg" alt="NOW">
-    <div class="title">NOW HD (eski FOX)</div>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Fox_Turkey_logo.svg/512px-Fox_Turkey_logo.svg.png" alt="NOW (Eski FOX)">
+    <div class="title">NOW HD</div>
   </div>
 
   <div class="card" data-src="https://www.showtv.com.tr/canli-yayin">
-    <img src="https://www.showtv.com.tr/assets/images/show-tv-logo.svg" alt="Show TV">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Show_TV_Logo.svg/512px-Show_TV_Logo.svg.png" alt="Show TV">
     <div class="title">Show TV HD</div>
   </div>
 
   <div class="card" data-src="https://www.tv8.com.tr/canli-yayin">
-    <img src="https://www.tv8.com.tr/assets/images/tv8-logo.svg" alt="TV8">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/TV8_logo.svg/512px-TV8_logo.svg.png" alt="TV8">
     <div class="title">TV8 HD</div>
   </div>
 
   <div class="card" data-src="https://www.trt1.com.tr/canli">
-    <img src="https://www.trt.tv/assets/images/trt1-logo.svg" alt="TRT 1">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/TRT_1_2018.svg/512px-TRT_1_2018.svg.png" alt="TRT 1">
     <div class="title">TRT 1 HD</div>
   </div>
 
   <div class="card" data-src="https://www.trtspor.com.tr/canli">
-    <img src="https://www.trt.tv/assets/images/trtspor-logo.svg" alt="TRT Spor">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/TRT_Spor_2018.svg/512px-TRT_Spor_2018.svg.png" alt="TRT Spor">
     <div class="title">TRT Spor HD</div>
   </div>
 
   <div class="card" data-src="https://www.ahaber.com.tr/canli-yayin">
-    <img src="https://www.ahaber.com.tr/assets/images/ahaber-logo.svg" alt="A Haber">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/A_Haber_logo.svg/512px-A_Haber_logo.svg.png" alt="A Haber">
     <div class="title">A Haber HD</div>
   </div>
 
@@ -74,7 +74,7 @@
 document.querySelectorAll('.card').forEach(card => {
   card.onclick = () => {
     const src = card.dataset.src;
-    document.getElementById('player').src = src + '?autoplay=1&mute=0&playsinline=0';
+    document.getElementById('player').src = src + '?autoplay=1&mute=0&playsinline=0&controls=0';
     document.getElementById('grid').style.display = 'none';
     document.getElementById('player').style.display = 'block';
     document.getElementById('back').style.display = 'block';

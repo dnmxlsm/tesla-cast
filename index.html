@@ -10,16 +10,21 @@
   p{font-size:22px;margin:20px 0;text-align:center}
   button{background:#ff0000;color:#fff;border:none;padding:25px 50px;font-size:28px;font-weight:bold;border-radius:20px;cursor:pointer;box-shadow:0 0 40px #ff0000;transition:0.3s;margin:10px}
   button:hover{transform:scale(1.05);box-shadow:0 0 60px #ff0000}
+  .tv-btn{background:#00ff00 !important;box-shadow:0 0 40px #00ff00 !important}
+  .tv-btn:hover{box-shadow:0 0 60px #00ff00 !important}
   iframe{width:100vw;height:100vh;position:fixed;top:0;left:0;border:none;display:none;z-index:999}
   #back{position:fixed;top:20px;left:20px;background:#ff0000;color:#fff;padding:15px 30px;border-radius:15px;font-weight:bold;display:none;cursor:pointer;z-index:1000}
 </style>
 </head>
 <body>
-
 <h1>YOUTUBE FIX</h1>
 <p>D modunda "refused to connect" için 2 yol</p>
+
 <button onclick="nativeAc()">1. Native YouTube (Theater)</button>
 <button onclick="redirectAc()">2. Redirect Hack (Tarayıcı)</button>
+
+<!-- YENİ BUTON: TV KANALLARI -->
+<button class="tv-btn" onclick="window.location.href='tv.html'">TV KANALLARI</button>
 
 <iframe id="yt" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-autoplay"></iframe>
 <button id="back" onclick="geri()">← GERİ</button>
@@ -27,31 +32,27 @@
 <script>
 function nativeAc() {
   alert('Entertainment > Theater > YouTube aç → Login ol → D modunda videoyu oyna!');
-  // Eğer login sorunu varsa, plex.tv'de Google login dene
 }
-
 function redirectAc() {
   const iframe = document.getElementById('yt');
-  // Senin verdiğin link – Tesla browser'ını kandırır
   iframe.src = "https://www.youtube.com/redirect?q=https://www.youtube.com/tv";
   iframe.style.display = 'block';
   document.querySelectorAll('h1,p,button').forEach(el => el.style.display = 'none');
   document.getElementById('back').style.display = 'block';
 
-  // D modunda durmasın
   setInterval(() => {
-    try { iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); } catch(e) {}
+    try { iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); } 
+    catch(e) {}
   }, 2000);
 
-  setTimeout(() => document.documentElement.requestFullscreen(), 1500);
+  setTimeout(() => document.documentElement.requestFullscreen?.(), 1500);
 }
-
 function geri() {
   document.getElementById('yt').src = '';
   document.getElementById('yt').style.display = 'none';
   document.querySelectorAll('h1,p,button').forEach(el => el.style.display = 'block');
   document.getElementById('back').style.display = 'none';
-  document.exitFullscreen();
+  document.exitFullscreen?.();
 }
 </script>
 </body>
